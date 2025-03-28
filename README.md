@@ -1,5 +1,4 @@
 # **Práctica 6: Buses de Comunicación**
-Participants: Alexandre Pascual / Marti Vila
 
 ## **1. Introducción**
 En la práctica anterior, se exploraron los buses de comunicación, centándose en la comunicación I2C. En esta práctica, se continuará con dicho estudio, enfocándose en el bus SPI (Serial Peripheral Interface).
