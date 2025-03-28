@@ -1,105 +1,104 @@
-# **Pràctica 6: Busos de Comunicació**
+# **Pràctica 6: Comunicació amb Busos**
 
 ## **1. Introducció**
-En la pràctica anterior, es van explorar els busos de comunicació, centrant-se en la comunicació I2C. En aquesta pràctica, es continuarà amb aquest estudi, enfocant-se en el bus SPI (Serial Peripheral Interface).
+En aquesta pràctica es continuarà explorant els busos de comunicació, amb un enfocament específic en el bus SPI (Serial Peripheral Interface). A diferència de la pràctica anterior, on es va treballar amb I2C, ara es realitzarà la lectura i escriptura d'una memòria SD i la identificació d'etiquetes RFID mitjançant SPI.
 
-Els principals objectius d’aquesta pràctica són:
-- Implementar la lectura i escriptura d’una memòria SD utilitzant SPI.
-- Llegir dades des d’una etiqueta RFID mitjançant el protocol SPI.
+Els objectius són:
+- Implementar la lectura i escriptura de fitxers en una targeta SD.
+- Configurar un lector RFID per obtenir el UID d'una targeta.
 
-## **2. Desenvolupament de la Pràctica**
-### **Exercici 1: Lectura i escriptura en memòria SD**
+## **2. Desenvolupament de la pràctica**
 
-A continuació, es presenta el codi utilitzat per a la lectura d’un fitxer de text des d’una targeta SD:
+### **Exercici 1: Manipulació de fitxers en una SD**
+
+A continuació es presenta el codi per llegir un fitxer de text emmagatzemat en una targeta SD:
 
 ```c++
 #include <SPI.h>
 #include <SD.h>
 #include <Arduino.h>
-File myFile;
-void setup()
-{
- Serial.begin(9600);
- Serial.print("Iniciant SD ...");
- if (!SD.begin(10)) {
- Serial.println("No s'ha pogut inicialitzar");
- return;
- }
- Serial.println("Inicialització exitosa");
- myFile = SD.open("/fitxer.txt"); // obrim el fitxer
- if (myFile) {
- Serial.println("fitxer.txt:");
- while (myFile.available()) {
- Serial.write(myFile.read());
- }
- myFile.close(); // tanquem el fitxer
- } else {
- Serial.println("Error en obrir el fitxer");
- }
+
+File fitxer;
+
+void setup() {
+    Serial.begin(9600);
+    Serial.print("Inicialitzant targeta SD...");
+    
+    if (!SD.begin(10)) {
+        Serial.println("No s'ha pogut inicialitzar la SD");
+        return;
+    }
+    Serial.println("SD inicialitzada correctament");
+    
+    fitxer = SD.open("/dades.txt");
+    if (fitxer) {
+        Serial.println("Contingut de dades.txt:");
+        while (fitxer.available()) {
+            Serial.write(fitxer.read());
+        }
+        fitxer.close();
+    } else {
+        Serial.println("No s'ha pogut obrir el fitxer");
+    }
 }
-void loop()
-{
 
+void loop() {
+    // No es requereix codi en el loop
 }
 ```
 
-### **Funcionament del codi**
-El programa inicialitza la comunicació amb una targeta SD i obre un fitxer de text anomenat `fitxer.txt`. Si la inicialització és exitosa, el programa procedeix a llegir el contingut del fitxer i el mostra en el monitor sèrie. Finalment, es tanca el fitxer.
+### **Explicació del codi**
+Aquest programa estableix la comunicació amb la targeta SD i obre un fitxer de text anomenat `dades.txt`. Si la SD es detecta correctament, es llegeix el contingut i es mostra per pantalla. En acabar, es tanca el fitxer per evitar errors.
 
-### **Sortida esperada pel monitor sèrie:**
+### **Exemple de sortida esperada:**
 ```
-Iniciant SD ... inicialització exitosa
-fitxer.txt:
-Soc el millor del món
+Inicialitzant targeta SD... SD inicialitzada correctament
+Contingut de dades.txt:
+Aquest és un exemple de text.
 ```
 
-![SD](https://github.com/user-attachments/assets/895412b4-20b4-4887-8a45-959b0d6397d1)
+![Imatge SD](https://github.com/user-attachments/assets/895412b4-20b4-4887-8a45-959b0d6397d1)
 
-### **Exercici 2: Lectura d’una etiqueta RFID**
+### **Exercici 2: Lectura d’una targeta RFID**
 
-En aquest exercici, es configura un lector RFID per identificar targetes i obtenir el seu UID.
+Aquest exercici consisteix en la configuració d'un lector RFID per detectar targetes i obtenir el seu UID.
 
 ```c++
 #include <SPI.h>
 #include <MFRC522.h>
-#define RST_PIN 0 // Pin 9 per al reset del RC522
-#define SS_PIN 10 // Pin 10 per al SS (SDA) del RC522
-MFRC522 mfrc522(SS_PIN, RST_PIN); // Creem l'objecte per al RC522
+
+#define RST_PIN 9
+#define SS_PIN 10
+
+MFRC522 lector(SS_PIN, RST_PIN);
+
 void setup() {
-Serial.begin(9600); // Iniciem la comunicació sèrie
-SPI.begin(); // Iniciem el Bus SPI
-mfrc522.PCD_Init(); // Iniciem el MFRC522
-Serial.println("Lectura de l'UID");
+    Serial.begin(9600);
+    SPI.begin();
+    lector.PCD_Init();
+    Serial.println("Esperant targeta...");
 }
+
 void loop() {
-// Comprovem si hi ha noves targetes presents
-if ( mfrc522.PICC_IsNewCardPresent())
- {
- // Seleccionem una targeta
- if ( mfrc522.PICC_ReadCardSerial())
- {
- // Enviem en sèrie el seu UID
- Serial.print("Card UID:");
- for (byte i = 0; i < mfrc522.uid.size; i++) {
-  Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0"
-    : " ");
-     Serial.print(mfrc522.uid.uidByte[i], HEX);
-     }
-     Serial.println();
-     // Finalitzem la lectura de la targeta actual
-     mfrc522.PICC_HaltA();
-     }
+    if (lector.PICC_IsNewCardPresent() && lector.PICC_ReadCardSerial()) {
+        Serial.print("UID de la targeta: ");
+        for (byte i = 0; i < lector.uid.size; i++) {
+            Serial.print(lector.uid.uidByte[i] < 0x10 ? " 0" : " ");
+            Serial.print(lector.uid.uidByte[i], HEX);
+        }
+        Serial.println();
+        lector.PICC_HaltA();
     }
-    }
+}
 ```
 
-### **Funcionament del codi**
-El programa inicialitza la comunicació SPI i configura el lector RFID MFRC522. Després, comprova constantment si hi ha noves targetes presents. Quan una targeta s'acosta al lector, el programa llegeix el seu UID i el mostra en el monitor sèrie.
+### **Explicació del codi**
+Aquest programa inicialitza el lector RFID MFRC522 i monitora la presència de targetes. Quan es detecta una targeta, es llegeix el seu UID i es mostra per pantalla.
 
-### **Exemple de sortida esperada en el monitor sèrie:**
-De la targeta:
+### **Exemple de sortida esperada:**
 ```
-Lectura de l'UID
-Card UID: 05 E7 F7 04
+Esperant targeta...
+UID de la targeta: 05 E7 F7 04
 ```
-![SPICard](https://github.com/user-attachments/assets/a76bf756-7d58-453a-8a52-5084ffe1cfc3)
+
+![Imatge RFID](https://github.com/user-attachments/assets/a76bf756-7d58-453a-8a52-5084ffe1cfc3)
