@@ -17,12 +17,12 @@ void setup()
 {
 Serial.begin(9600);
 Serial.print("Iniciando SD ...");
-if (!SD.begin(4)) {
+if (!SD.begin(10)) {
 Serial.println("No se pudo inicializar");
 return;
 }
 Serial.println("inicializacion exitosa");
-myFile = SD.open("archivo.txt");
+myFile = SD.open("/archivo.txt");
 if (myFile) {
 Serial.println("archivo.txt:");
 while (myFile.available()) {
