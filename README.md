@@ -1,16 +1,16 @@
-# **Práctica 6: Buses de Comunicación**
+# **Pràctica 6: Busos de Comunicació**
 
-## **1. Introducción**
-En la práctica anterior, se exploraron los buses de comunicación, centándose en la comunicación I2C. En esta práctica, se continuará con dicho estudio, enfocándose en el bus SPI (Serial Peripheral Interface).
+## **1. Introducció**
+En la pràctica anterior, es van explorar els busos de comunicació, centrant-se en la comunicació I2C. En aquesta pràctica, es continuarà amb aquest estudi, enfocant-se en el bus SPI (Serial Peripheral Interface).
 
-Los principales objetivos de esta práctica son:
-- Implementar la lectura y escritura de una memoria SD utilizando SPI.
-- Leer datos desde una etiqueta RFID mediante el protocolo SPI.
+Els principals objectius d’aquesta pràctica són:
+- Implementar la lectura i escriptura d’una memòria SD utilitzant SPI.
+- Llegir dades des d’una etiqueta RFID mitjançant el protocol SPI.
 
-## **2. Desarrollo de la Práctica**
-### **Ejercicio 1: Lectura y escritura en memoria SD**
+## **2. Desenvolupament de la Pràctica**
+### **Exercici 1: Lectura i escriptura en memòria SD**
 
-A continuación, se presenta el código utilizado para la lectura de un archivo de texto desde una tarjeta SD:
+A continuació, es presenta el codi utilitzat per a la lectura d’un fitxer de text des d’una targeta SD:
 
 ```c++
 #include <SPI.h>
@@ -20,21 +20,21 @@ File myFile;
 void setup()
 {
  Serial.begin(9600);
- Serial.print("Iniciando SD ...");
+ Serial.print("Iniciant SD ...");
  if (!SD.begin(10)) {
- Serial.println("No se pudo inicializar");
+ Serial.println("No s'ha pogut inicialitzar");
  return;
  }
- Serial.println("inicializacion exitosa");
- myFile = SD.open("/archivo.txt");//abrimos el archivo
+ Serial.println("Inicialització exitosa");
+ myFile = SD.open("/fitxer.txt"); // obrim el fitxer
  if (myFile) {
- Serial.println("archivo.txt:");
+ Serial.println("fitxer.txt:");
  while (myFile.available()) {
  Serial.write(myFile.read());
  }
- myFile.close(); //cerramos el archivo
+ myFile.close(); // tanquem el fitxer
  } else {
- Serial.println("Error al abrir el archivo");
+ Serial.println("Error en obrir el fitxer");
  }
 }
 void loop()
@@ -43,43 +43,42 @@ void loop()
 }
 ```
 
-### **Funcionamiento del código**
-El programa inicializa la comunicación con una tarjeta SD y abre un archivo de texto llamado `archivo.txt`. Si la inicialización es exitosa, el programa procede a leer el contenido del archivo y lo muestra en el monitor serie. Finalmente, se cierra el archivo.
+### **Funcionament del codi**
+El programa inicialitza la comunicació amb una targeta SD i obre un fitxer de text anomenat `fitxer.txt`. Si la inicialització és exitosa, el programa procedeix a llegir el contingut del fitxer i el mostra en el monitor sèrie. Finalment, es tanca el fitxer.
 
-### **Salida esperada por el monitor serie:**
+### **Sortida esperada pel monitor sèrie:**
 ```
-Iniciando SD ... inicializacion exitosa
-archivo.txt:
-Soy el mejor del mundo
+Iniciant SD ... inicialització exitosa
+fitxer.txt:
+Soc el millor del món
 ```
 
 ![SD](https://github.com/user-attachments/assets/895412b4-20b4-4887-8a45-959b0d6397d1)
 
+### **Exercici 2: Lectura d’una etiqueta RFID**
 
-### **Ejercicio 2: Lectura de una etiqueta RFID**
-
-En este ejercicio, se configura un lector RFID para identificar tarjetas y obtener su UID.
+En aquest exercici, es configura un lector RFID per identificar targetes i obtenir el seu UID.
 
 ```c++
 #include <SPI.h>
 #include <MFRC522.h>
-#define RST_PIN 0 //Pin 9 para el reset del RC522
-#define SS_PIN 10 //Pin 10 para el SS (SDA) del RC522
-MFRC522 mfrc522(SS_PIN, RST_PIN); //Creamos el objeto para el RC522
+#define RST_PIN 0 // Pin 9 per al reset del RC522
+#define SS_PIN 10 // Pin 10 per al SS (SDA) del RC522
+MFRC522 mfrc522(SS_PIN, RST_PIN); // Creem l'objecte per al RC522
 void setup() {
-Serial.begin(9600); //Iniciamos la comunicación serial
-SPI.begin(); //Iniciamos el Bus SPI
-mfrc522.PCD_Init(); // Iniciamos el MFRC522
-Serial.println("Lectura del UID");
+Serial.begin(9600); // Iniciem la comunicació sèrie
+SPI.begin(); // Iniciem el Bus SPI
+mfrc522.PCD_Init(); // Iniciem el MFRC522
+Serial.println("Lectura de l'UID");
 }
 void loop() {
-// Revisamos si hay nuevas tarjetas presentes
+// Comprovem si hi ha noves targetes presents
 if ( mfrc522.PICC_IsNewCardPresent())
  {
- //Seleccionamos una tarjeta
+ // Seleccionem una targeta
  if ( mfrc522.PICC_ReadCardSerial())
  {
- // Enviamos serialemente su UID
+ // Enviem en sèrie el seu UID
  Serial.print("Card UID:");
  for (byte i = 0; i < mfrc522.uid.size; i++) {
   Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0"
@@ -87,21 +86,20 @@ if ( mfrc522.PICC_IsNewCardPresent())
      Serial.print(mfrc522.uid.uidByte[i], HEX);
      }
      Serial.println();
-     // Terminamos la lectura de la tarjeta actual
+     // Finalitzem la lectura de la targeta actual
      mfrc522.PICC_HaltA();
      }
     }
     }
 ```
 
+### **Funcionament del codi**
+El programa inicialitza la comunicació SPI i configura el lector RFID MFRC522. Després, comprova constantment si hi ha noves targetes presents. Quan una targeta s'acosta al lector, el programa llegeix el seu UID i el mostra en el monitor sèrie.
 
-### **Funcionamiento del código**
-El programa inicializa la comunicación SPI y configura el lector RFID MFRC522. Luego, constantemente revisa si hay nuevas tarjetas presentes. Cuando una tarjeta se acerca al lector, el programa lee su UID y lo muestra en el monitor serie.
-
-### **Ejemplo de salida esperada en el monitor serie:**
-De la tarjeta:
+### **Exemple de sortida esperada en el monitor sèrie:**
+De la targeta:
 ```
-Lectura del UID
+Lectura de l'UID
 Card UID: 05 E7 F7 04
 ```
 ![SPICard](https://github.com/user-attachments/assets/a76bf756-7d58-453a-8a52-5084ffe1cfc3)
